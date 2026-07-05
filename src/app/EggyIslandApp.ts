@@ -21,22 +21,24 @@ export class EggyIslandApp {
     this.renderer.domElement.dataset.scene = 'eggy-island';
     this.renderer.setClearColor(0x8ed7ff, 1);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.12;
 
-    this.camera = new THREE.PerspectiveCamera(48, 1, 0.1, 120);
-    this.camera.position.set(8, 5.8, 9);
+    this.camera = new THREE.PerspectiveCamera(44, 1, 0.1, 140);
+    this.camera.position.set(7.5, 4.8, 7.5);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.06;
     this.controls.enablePan = false;
     this.controls.autoRotate = true;
-    this.controls.autoRotateSpeed = 0.28;
-    this.controls.minDistance = 6.5;
-    this.controls.maxDistance = 16;
-    this.controls.minPolarAngle = Math.PI * 0.22;
-    this.controls.maxPolarAngle = Math.PI * 0.48;
+    this.controls.autoRotateSpeed = 0.16;
+    this.controls.minDistance = 6.2;
+    this.controls.maxDistance = 17;
+    this.controls.minPolarAngle = Math.PI * 0.2;
+    this.controls.maxPolarAngle = Math.PI * 0.5;
     this.controls.target.copy(this.island.cameraTarget);
 
     this.container.appendChild(this.renderer.domElement);
@@ -68,7 +70,8 @@ export class EggyIslandApp {
     const isPortrait = aspect < 0.8;
 
     this.camera.aspect = aspect;
-    this.camera.position.set(isPortrait ? 8.8 : 8, isPortrait ? 6.9 : 5.8, isPortrait ? 12.5 : 9);
+    this.camera.fov = isPortrait ? 53 : 44;
+    this.camera.position.set(isPortrait ? 9.8 : 7.5, isPortrait ? 7.1 : 4.8, isPortrait ? 16.2 : 7.5);
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height, false);

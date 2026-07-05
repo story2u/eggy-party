@@ -13,8 +13,13 @@
 | --- | --- |
 | `src/app/EggyIslandApp.ts` | 应用生命周期、渲染器、相机、控制器、窗口 resize、动画循环 |
 | `src/world/createEggyIslandScene.ts` | 组合完整蛋仔岛场景，暴露 `scene`、`cameraTarget`、`update` |
-| `src/world/createIslandBase.ts` | 浮岛、草地、沙滩、石头等地形对象 |
-| `src/world/createEggyCharacter.ts` | 蛋仔角色模型工厂 |
+| `src/world/materials.ts` | 共享卡通材质和递归阴影工具 |
+| `src/world/createIslandBase.ts` | 圆形大厅岛、中央广场、外圈道路、路缘、台阶、绿化区 |
+| `src/world/createCentralEggyStatue.ts` | 中央大型原创蛋仔雕像和台座 |
+| `src/world/createFerrisWheel.ts` | 左后方摩天轮地标和座舱 |
+| `src/world/createRocketHub.ts` | 右后方火箭/未来塔楼地标 |
+| `src/world/createPlazaDetails.ts` | 地砖线、斑马线、护栏、灯杆、锥桶、箱子、花坛、发光物 |
+| `src/world/createEggyCharacter.ts` | 普通蛋仔角色模型工厂，含手臂和简化服饰配件 |
 | `src/world/createPalmTree.ts` | 棕榈树模型工厂 |
 | `src/styles.css` | 全屏 canvas 和基础页面样式 |
 | `tests/unit/` | Vitest 单元测试，验证场景结构和意图 |
@@ -39,7 +44,9 @@
   - `eggy-character`
   - `landmark`
   - `play-prop`
+  - `plaza-detail`
   - `foliage`
+  - `pickup`
 - 新增场景工厂优先放在 `src/world/`，避免把所有几何体堆进 app 生命周期类。
 
 ## 渲染和交互约定
