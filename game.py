@@ -5,6 +5,7 @@ game.py — 游戏核心
 import pygame
 import pygame.freetype
 import sys
+from font_utils import get_font
 from player import Player, AIPlayer
 from level import ALL_LEVELS
 
@@ -30,12 +31,13 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("🥚 蛋仔派对 Demo")
+        pygame.display.set_caption("蛋仔派对 Demo")
         self.screen = pygame.display.set_mode((self.SCREEN_W, self.SCREEN_H))
         self.clock = pygame.time.Clock()
-        self.font_big = pygame.freetype.SysFont("notosanscjk", 48)
-        self.font_mid = pygame.freetype.SysFont("notosanscjk", 32)
-        self.font_small = pygame.freetype.SysFont("notosanscjk", 22)
+        self.font_big = get_font(48)
+        self.font_mid = get_font(32)
+        self.font_small = get_font(22)
+        self.font_huge = get_font(96)
 
         self.state = "MENU"       # MENU | PLAYING | FINISHED
         self.current_level_idx = 0
@@ -277,7 +279,7 @@ class Game:
         self.screen.fill((20, 20, 50))
 
         # 标题
-        title = self.font_big.render("🥚 蛋仔派对 Demo", YELLOW)[0]
+        title = self.font_big.render("蛋仔派对 Demo", YELLOW)[0]
         title_rect = title.get_rect(center=(self.SCREEN_W // 2, 150))
         self.screen.blit(title, title_rect)
 
@@ -298,7 +300,7 @@ class Game:
             "↑ 或 W 或 空格：跳跃（可二段跳）",
             "R：重新开始  |  ESC：退出",
             "",
-            "关卡：🌿草原 → ⚙️工厂 → 🔥乱斗 → 🧟木头人",
+            "关卡：草原 -> 工厂 -> 乱斗 -> 木头人",
         ]
         for i, text in enumerate(controls):
             c = self.font_small.render(text, GRAY)[0]
@@ -370,7 +372,7 @@ class Game:
         pygame.draw.polygon(self.screen, WHITE, flag_points, 2)
 
         # "终点"文字
-        finish_text = self.font_small.render("🏁 终点", YELLOW)[0]
+        finish_text = self.font_small.render("终点", YELLOW)[0]
         self.screen.blit(finish_text, (fx - 20, fy - 145))
 
     # ──────────────────────────────────────
@@ -384,14 +386,13 @@ class Game:
 
         # 屏幕中央的大字
         if doll.state == "green":
-            text = "🟢  GO!"
+            text = "GO!"
             color = (0, 255, 0, 180)
         else:
-            text = "🔴  STOP!"
+            text = "STOP!"
             color = (255, 0, 0, 220)
 
-        big = pygame.freetype.SysFont("notosanscjk", 96)
-        surf = big.render(text, color[:3])[0]
+        surf = self.font_huge.render(text, color[:3])[0]
         surf.set_alpha(color[3])
         rect = surf.get_rect(center=(self.SCREEN_W // 2, 300))
 
@@ -420,7 +421,7 @@ class Game:
         minutes = int(self.race_time // 60)
         seconds = int(self.race_time % 60)
         ms = int((self.race_time % 1) * 100)
-        time_str = f"⏱ {minutes:02d}:{seconds:02d}.{ms:02d}"
+        time_str = f"{minutes:02d}:{seconds:02d}.{ms:02d}"
         time_text = self.font_mid.render(time_str, WHITE)[0]
         self.screen.blit(time_text, (self.SCREEN_W // 2 - 80, 10))
 
@@ -449,7 +450,7 @@ class Game:
         doll = self._get_doll()
         if doll:
             hint = self.font_small.render(
-                "🟢 绿灯跑  🔴 红灯停！",
+                "绿灯跑  红灯停！",
                 (200, 200, 200)
             )[0]
             self.screen.blit(hint, (self.SCREEN_W // 2 - 80, 30))
@@ -461,7 +462,7 @@ class Game:
         self.screen.fill((20, 20, 50))
 
         # 庆祝标题
-        title = self.font_big.render("🎉 全部通关！ 🎉", YELLOW)[0]
+        title = self.font_big.render("全部通关！", YELLOW)[0]
         title_rect = title.get_rect(center=(self.SCREEN_W // 2, 150))
         self.screen.blit(title, title_rect)
 
@@ -473,5 +474,4 @@ class Game:
 
         restart = self.font_mid.render("按 ENTER 返回主菜单", GREEN)[0]
         rest_rect = restart.get_rect(center=(self.SCREEN_W // 2, 310))
-        self.screen.blit(restart, restart)
-[0]
+        self.screen.blit(restart, rest_rect)

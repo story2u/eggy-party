@@ -8,6 +8,7 @@ import pygame
 import pygame.freetype
 import random
 import math
+from font_utils import get_font
 
 
 class Player:
@@ -58,9 +59,8 @@ class Player:
         # 重力
         self.vy += self.GRAVITY * dt
 
-        # 更新位置
+        # 先处理水平轴，再处理垂直轴，避免脚下平台被误判成侧面墙。
         self.x += self.vx * dt
-        self.y += self.vy * dt
 
         # 水平碰撞检测
         rect = self.get_rect()
@@ -72,6 +72,8 @@ class Player:
                 elif self.vx < 0:
                     self.x = plat_rect.right
                 self.vx = 0
+
+        self.y += self.vy * dt
 
         # 垂直碰撞检测
         self.on_ground = False
@@ -149,8 +151,8 @@ class Player:
 
         # 淘汰标记（💀）
         if not self.alive:
-            font = pygame.freetype.SysFont("notosanscjk", 32)
-            death = font.render("💀", (200, 0, 0)[0])
+            font = get_font(32)
+            death = font.render("淘汰", (200, 0, 0))[0]
             screen.blit(death, (screen_x + 2, screen_y - 10))
 
 
@@ -250,11 +252,10 @@ class AIPlayer(Player):
         """画 AI 名字"""
         if self.invincible_timer > 0:
             return
-        font = pygame.freetype.SysFont("notosanscjk", 18)
-        text = font.render(self.name[:4], (255, 255, 255)[0])
+        font = get_font(18)
+        text = font.render(self.name[:4], (255, 255, 255))[0]
         screen.blit(
             text,
             (self.x - camera_x + self.width // 2 - text.get_width() // 2,
              self.y - 16)
         )
-[0]

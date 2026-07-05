@@ -55,16 +55,32 @@ python3 main.py
 
 ---
 
+## ✅ 如何测试
+
+项目使用 Python 标准库 `unittest` 做 TDD 回归测试，不需要额外安装测试框架。
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+每个测试方法的 docstring 都记录了对应功能的设计意图，方便回归失败时理解当初为什么要这样设计。
+
+---
+
 ## 📁 项目结构
 
 ```
 eggy-party/
 ├── README.md          ← 你正在看的文档
+├── AGENTS.md          ← AI 开发入口
+├── harness/           ← AI 开发上下文、架构、规范、验证流程
+├── tests/             ← TDD 单元测试和回归测试
 ├── main.py            ← 入口文件，启动游戏
 ├── game.py            ← 游戏核心（主循环、渲染、计分）
 ├── player.py          ← 玩家和 AI 角色
-├── level.py           ← 关卡数据（3个关卡）
+├── level.py           ← 关卡数据（4个关卡）
 ├── obstacles.py       ← 障碍物（旋转锤、尖刺）
+├── font_utils.py      ← 中文字体加载
 └── assets/            ← 素材文件夹（将来放图片、音效）
 ```
 
@@ -86,6 +102,10 @@ eggy-party/
 - 最难的障碍组合
 - 更长的赛道
 - 真正的挑战
+
+### 关卡 4：一二三木头人
+- 红灯停、绿灯跑
+- 红灯时移动会被淘汰
 
 ---
 

@@ -2,3 +2,18 @@ __pycache__/
 venv/
 *.pyc
 *.log
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build/package output
+build/
+dist/
+*.egg-info/
+
+# Local editor/OS files
+.DS_Store
+.vscode/
+.idea/
