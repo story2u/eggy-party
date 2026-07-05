@@ -2,86 +2,67 @@
 
 ## TDD 基线
 
-本项目的验证基线是单元测试优先。新增功能或修 bug 时，先写一个能表达意图的测试，再修改实现。
+本项目继续使用 TDD。新增功能或修 bug 时，先写或更新测试，再修改实现。
 
-运行全部单元测试：
+当前测试分两层：
 
-```bash
-python3 -m unittest discover -s tests -v
-```
-
-测试方法必须用 docstring 说明设计意图。回归失败时，DeepSeek 应先阅读对应测试的 docstring，再判断是实现错了、测试过期了，还是需求改变了。
+- `tests/unit/`：Vitest，验证场景结构和纯逻辑。
+- `tests/e2e/`：Playwright，验证真实浏览器中的 WebGL canvas。
 
 ## 快速验证
 
 每次代码修改后至少运行：
 
 ```bash
-python3 -m unittest discover -s tests -v
-python3 -m py_compile main.py game.py player.py level.py obstacles.py font_utils.py
+npm run typecheck
+npm test
+npm run build
 ```
 
-## 渲染 smoke test
+## 3D 浏览器验证
 
-没有图形环境或只想确认核心画面不崩溃时，运行：
+涉及 Three.js 场景、样式、相机、交互或首屏显示时必须运行：
 
 ```bash
-SDL_VIDEODRIVER=dummy python3 - <<'PY'
-import pygame
-from game import Game
+npm run test:e2e
+```
 
-pygame.init()
-game = Game()
-game._draw_menu()
-game.load_level(0)
-game._draw_playing()
-game.human_player.alive = False
-game.human_player.draw(game.screen, game.camera_x)
-game.state = "FINISHED"
-game._draw_finished()
-pygame.quit()
-print("render smoke test passed")
-PY
+Playwright 测试会覆盖：
+
+- desktop Chromium viewport。
+- mobile Chromium viewport。
+- canvas 是否全视口。
+- WebGL 像素是否非空且颜色足够丰富。
+- 截图输出到 `test-results/`。
+
+如果本机首次运行 Playwright 缺浏览器：
+
+```bash
+npx playwright install chromium
+```
+
+## 完整验证
+
+```bash
+npm run verify
 ```
 
 ## 手动验证
 
-本地运行：
-
 ```bash
-./run.sh
+npm install
+npm run dev
 ```
 
-手动检查：
+打开 `http://localhost:5173`，检查：
 
-- 菜单中文显示正常。
-- Enter 或 Space 能开始游戏。
-- A/D 或左右键能移动。
-- W/上键/空格能跳跃。
-- R 能重开当前关卡。
-- ESC 能退出。
-- 第一关能看到平台、终点、玩家和 AI。
-- 第四关木头人红灯移动会淘汰。
-
-## 字体验证
-
-改字体或中文文案时运行：
-
-```bash
-python3 - <<'PY'
-from font_utils import get_font
-font = get_font(24)
-print("font:", getattr(font, "path", None), getattr(font, "name", None))
-print("metrics:", font.get_metrics("中文"))
-PY
-```
-
-如果 `metrics` 返回有效元组，说明中文字符能被当前字体处理。
+- 首屏就是 3D 蛋仔岛。
+- 岛屿、水面、蛋仔、树、云等对象可见。
+- 拖动/触摸可围绕岛屿观察。
+- 桌面和手机尺寸下文字与 canvas 不重叠。
 
 ## 当前测试缺口
 
-- 没有截图级 UI 回归。
-- 没有性能测试。
-- 常规障碍伤害碰撞尚未实现，因此目前没有对应行为测试。
-
-在增加复杂玩法前，先补对应 unittest 用例。后续如引入 pytest，需要同步更新本文件和 `tests/README.md`。
+- 尚未测试具体用户输入玩法，因为当前只是 3D 展示。
+- 尚未做性能预算测试。
+- 尚未做视觉差异快照比对，只做非空 canvas 和截图留档。

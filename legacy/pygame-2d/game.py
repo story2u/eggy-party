@@ -154,14 +154,14 @@ class Game:
     def _update_playing(self, dt):
         self.race_time += dt
 
-        # 获取玩家输入 → 直接控制人类玩家的速度
+        # ── 人类输入：用加速度（蛋仔有惯性！）──
         keys = pygame.key.get_pressed()
+        move_dir = 0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.human_player.vx = -self.human_player.SPEED
+            move_dir = -1
         elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.human_player.vx = self.human_player.SPEED
-        else:
-            self.human_player.vx = 0
+            move_dir = 1
+        self.human_player.move(move_dir, dt)
 
         if keys[pygame.K_UP] or keys[pygame.K_w] or keys[pygame.K_SPACE]:
             self.human_player.jump()
@@ -172,18 +172,24 @@ class Game:
                 continue
 
             if p == self.human_player:
-                # 人类玩家：物理更新
                 p.update(dt, self.level.platforms)
             else:
-                # AI 玩家：AI 决策 + 物理更新
                 p.ai_update(dt, self.level.platforms,
                             self.level.obstacles, self.level.finish_x)
 
-            # 检查是否到达终点
             if self._check_finish(p):
                 p.finished = True
                 p.finish_time = self.race_time
                 self.finished_order.append(p)
+
+        # ── 蛋仔互相碰撞弹开！派对的灵魂 ──
+        for i, a in enumerate(self.players):
+            if not a.alive or a.finished:
+                continue
+            for b in self.players[i+1:]:
+                if not b.alive or b.finished:
+                    continue
+                a.resolve_player_collision(b)
 
         # 更新障碍物
         for obs in self.level.obstacles:

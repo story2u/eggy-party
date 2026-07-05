@@ -35,10 +35,10 @@ DeepSeek 启动提示模板见 `harness/DEEPSEEK_BOOTSTRAP.md`。
 
 | 任务类型 | 追加读取 |
 | --- | --- |
-| 改游戏循环、状态、镜头、HUD | `harness/ARCHITECTURE.md`, `harness/VERIFICATION.md` |
-| 改玩家、AI、物理、碰撞 | `harness/ARCHITECTURE.md`, `harness/FEATURE_MAP.md`, `harness/VERIFICATION.md` |
-| 加关卡、障碍、玩法 | `harness/FEATURE_MAP.md`, `harness/DEVELOPMENT_GUIDE.md`, `harness/VERIFICATION.md` |
-| 改字体、显示、中文文本 | `harness/DEVELOPMENT_GUIDE.md`, `harness/VERIFICATION.md` |
+| 改 Three.js 场景、相机、动画 | `harness/ARCHITECTURE.md`, `harness/FEATURE_MAP.md`, `harness/VERIFICATION.md` |
+| 加 3D 对象、岛屿元素、角色 | `harness/FEATURE_MAP.md`, `harness/DEVELOPMENT_GUIDE.md`, `harness/TASK_PLAYBOOKS.md` |
+| 改 canvas 布局、移动端显示 | `harness/DEVELOPMENT_GUIDE.md`, `harness/VERIFICATION.md` |
+| 引入新库或资源管线 | `harness/ARCHITECTURE.md`, `harness/DECISIONS.md`, `harness/VERIFICATION.md` |
 | 修 bug | `harness/ARCHITECTURE.md`, `harness/TASK_PLAYBOOKS.md`, `harness/VERIFICATION.md` |
 | 大改或重构 | 全部 harness 文件，并更新 `harness/DECISIONS.md` |
 | 配置 DeepSeek 启动流程 | `harness/DEEPSEEK_BOOTSTRAP.md` |
@@ -53,4 +53,4 @@ DeepSeek 启动提示模板见 `harness/DEEPSEEK_BOOTSTRAP.md`。
 
 ## TDD 要求
 
-每个新功能或 bug 修复都应先写或更新单元测试。测试文件放在 `tests/`，测试 docstring 说明功能意图，验证命令见 `harness/VERIFICATION.md`。
+每个新功能或 bug 修复都应先写或更新测试。场景结构用 Vitest，真实 3D 渲染和移动端用 Playwright，验证命令见 `harness/VERIFICATION.md`。

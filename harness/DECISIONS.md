@@ -42,3 +42,30 @@
 - 当前环境没有安装 pytest，unittest 可零依赖运行。
 - 项目规模小，标准库测试足够覆盖核心行为。
 - DeepSeek 可以通过测试名称和 docstring 理解回归保护的原因。
+
+## 2026-07-05: 主线迁移到 Vite + TypeScript + Three.js
+
+决定：
+
+- 根目录主项目从 Python/Pygame 2D demo 迁移到 Web 3D。
+- 技术栈为 Vite、TypeScript、Three.js、Vitest、Playwright。
+- 旧 2D 原型归档到 `legacy/pygame-2d/`。
+
+原因：
+
+- 用户目标变为 3D 蛋仔岛展示。
+- Three.js 更适合轻量 3D Web 展示和后续浏览器验收。
+- Vite + TypeScript 提供更好的模块化、类型检查和 DeepSeek 接手边界。
+
+## 2026-07-05: 3D 验证必须包含浏览器像素检查
+
+决定：
+
+- 单元测试使用 Vitest。
+- 真实渲染验证使用 Playwright，覆盖桌面和移动 viewport。
+- Playwright 测试必须检查 canvas 全视口、非空和颜色变化，并输出截图。
+
+原因：
+
+- 3D 场景只通过类型检查无法确认画面是否真的渲染。
+- headless WebGL 容易出现空 canvas、相机错位或移动端尺寸问题。

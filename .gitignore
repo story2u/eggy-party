@@ -1,12 +1,16 @@
 __pycache__/
 venv/
+node_modules/
 *.pyc
 *.log
 
 # Test and coverage output
 .pytest_cache/
 .coverage
+coverage/
 htmlcov/
+test-results/
+playwright-report/
 
 # Build/package output
 build/

@@ -1,4 +1,4 @@
 #!/bin/bash
-# 蛋仔派对 Demo 启动脚本
+set -e
 cd "$(dirname "$0")"
-python3 main.py
+npm run dev -- --host 0.0.0.0

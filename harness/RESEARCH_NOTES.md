@@ -68,3 +68,13 @@ harness/
 ```
 
 这个结构足够轻，不需要额外工具；同时比单个长文档更适合 DeepSeek 按需读取。
+
+## 2026-07-05: 3D 架构调研补充
+
+本次 3D 重构参考了 Three.js、Vite、Vitest、Playwright 的官方文档和当前生态版本。结论：
+
+- Three.js 适合作为基础 3D 渲染层，先用程序化 geometry 搭建蛋仔岛，避免一开始引入资产管线。
+- Vite 适合作为轻量 Web 游戏开发入口，启动快，TypeScript 支持直接。
+- Vitest 与 Vite 配合紧密，适合测试场景工厂和纯逻辑。
+- Playwright 适合验证真实浏览器中的 WebGL canvas，尤其是桌面/移动 viewport、截图和像素检查。
+- 当前阶段不引入物理引擎、React、ECS 或 glTF 管线，避免基础展示阶段过早复杂化。

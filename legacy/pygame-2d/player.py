@@ -12,22 +12,27 @@ from font_utils import get_font
 
 
 class Player:
-    """玩家控制的蛋仔"""
+    """蛋仔角色 — 会滚、会弹、有惯性"""
 
     WIDTH = 32
     HEIGHT = 36
-    SPEED = 200          # 每秒移动像素
-    JUMP_SPEED = -380    # 跳跃初速度（负=向上）
-    MAX_JUMPS = 2        # 支持二段跳
-    GRAVITY = 800        # 重力加速度
+    RADIUS = 16        
+    MAX_SPEED = 280    
+    ACCEL = 1200       
+    FRICTION = 500     
+    JUMP_SPEED = -380  
+    MAX_JUMPS = 2      
+    GRAVITY = 800      
 
     def __init__(self, x, y, color=(255, 180, 50), name="蛋仔"):
         self.x = x
         self.y = y
-        self.vx = 0       # 水平速度
-        self.vy = 0       # 垂直速度
+        self.vx = 0
+        self.vy = 0
         self.color = color
         self.name = name
+        self.input_direction = 0
+        self.rotation = 0.0
         self.width = self.WIDTH
         self.height = self.HEIGHT
         self.on_ground = False
@@ -36,12 +41,16 @@ class Player:
         self.finished = False
         self.finish_time = 0.0
         self.health = 100
-        self.invincible_timer = 0  # 无敌时间（受伤后短暂无敌）
+        self.invincible_timer = 0
         self.score = 0
 
     def move(self, direction, dt):
-        """左右移动"""
-        self.vx = direction * self.SPEED
+        """加速度移动 - 蛋仔有惯性，不会瞬间起停"""
+        self.input_direction = direction
+        self.vx += direction * self.ACCEL * dt
+        self.vx = max(-self.MAX_SPEED, min(self.MAX_SPEED, self.vx))
+        # 滚动角度：转动距离 / 半径
+        self.rotation += self.vx * dt / self.RADIUS
 
     def jump(self):
         """跳跃（支持二段跳）"""
@@ -51,18 +60,22 @@ class Player:
             self.on_ground = False
 
     def update(self, dt, platforms):
-        """每帧更新位置和物理"""
-        # 无敌倒计时
+        """每帧物理：重力 + 摩擦 + 碰撞"""
         if self.invincible_timer > 0:
             self.invincible_timer -= dt
 
-        # 重力
         self.vy += self.GRAVITY * dt
 
-        # 先处理水平轴，再处理垂直轴，避免脚下平台被误判成侧面墙。
-        self.x += self.vx * dt
+        # ── 地面摩擦：蛋仔滚着滚着会慢下来 ──
+        if self.on_ground and self.input_direction == 0:
+            fric = -self.FRICTION if self.vx > 0 else self.FRICTION if self.vx < 0 else 0
+            self.vx += fric * dt
+            if abs(self.vx) < 8:
+                self.vx = 0
+            self.rotation += self.vx * dt / self.RADIUS
 
-        # 水平碰撞检测
+        # 水平 + 碰撞
+        self.x += self.vx * dt
         rect = self.get_rect()
         for p_data in platforms:
             plat_rect = pygame.Rect(*p_data[:4])
@@ -73,9 +86,8 @@ class Player:
                     self.x = plat_rect.right
                 self.vx = 0
 
+        # 垂直 + 碰撞
         self.y += self.vy * dt
-
-        # 垂直碰撞检测
         self.on_ground = False
         rect = self.get_rect()
         for p_data in platforms:
@@ -90,7 +102,6 @@ class Player:
                     self.y = plat_rect.bottom
                     self.vy = 0
 
-        # 掉落死亡
         if self.y > 800:
             self.alive = False
 
@@ -98,45 +109,89 @@ class Player:
         """获取碰撞矩形"""
         return pygame.Rect(self.x, self.y, self.width, self.height)
 
-    def draw(self, screen, camera_x):
-        """画蛋仔"""
-        screen_x = self.x - camera_x
-        screen_y = self.y
+    def resolve_player_collision(self, other):
+        """蛋仔互相碰撞 —— 弹开！这是蛋仔派对的核心乐趣"""
+        if not self.alive or not other.alive:
+            return
+        rect1 = self.get_rect()
+        rect2 = other.get_rect()
+        if not rect1.colliderect(rect2):
+            return
 
-        # 无敌闪烁效果
+        cx1 = self.x + self.width / 2
+        cy1 = self.y + self.height / 2
+        cx2 = other.x + other.width / 2
+        cy2 = other.y + other.height / 2
+
+        dx = cx1 - cx2
+        dy = cy1 - cy2
+        if dx == 0 and dy == 0:
+            dx = 1
+
+        dist = (dx*dx + dy*dy) ** 0.5
+        nx = dx / dist
+        ny = dy / dist
+
+        # 推开重叠
+        overlap = (self.width + other.width) / 2 - dist
+        if overlap > 0:
+            self.x += nx * overlap * 0.55
+            self.y += ny * overlap * 0.55
+            other.x -= nx * overlap * 0.55
+            other.y -= ny * overlap * 0.55
+
+        # 速度交换（弹力）
+        push = 150
+        self.vx += nx * push
+        self.vy += ny * push * 0.5
+        other.vx -= nx * push
+        other.vy -= ny * push * 0.5
+
+    def draw(self, screen, camera_x):
+        """画会滚的蛋仔"""
+        sx = self.x - camera_x
+        sy = self.y
+
         if self.invincible_timer > 0 and int(self.invincible_timer * 10) % 2 == 0:
             return
 
-        # 身体（椭圆，蛋形）
-        body_rect = pygame.Rect(
-            screen_x + 2, screen_y + 4, self.width - 4, self.height - 4
-        )
-        pygame.draw.ellipse(screen, self.color, body_rect)
-        # 边框
-        pygame.draw.ellipse(screen, (180, 120, 30), body_rect, 2)
+        # ── 滚动旋转效果：把蛋仔画到临时 surface 上再旋转 ──
+        pad = 6
+        surf = pygame.Surface((self.width + pad * 2, self.height + pad * 2),
+                              pygame.SRCALPHA)
+        cx = surf.get_width() // 2
+        cy = surf.get_height() // 2
 
-        # 眼睛（两个小白圆）
-        eye_y = screen_y + 12
-        pygame.draw.circle(screen, (255, 255, 255), (screen_x + 9, eye_y), 5)
-        pygame.draw.circle(screen, (255, 255, 255), (screen_x + 23, eye_y), 5)
-        # 瞳孔
-        pygame.draw.circle(screen, (30, 30, 30), (screen_x + 10, eye_y + 1), 2)
-        pygame.draw.circle(screen, (30, 30, 30), (screen_x + 24, eye_y + 1), 2)
+        # 身体
+        body_rect = pygame.Rect(cx - self.width//2 + 2, cy - self.height//2 + 4,
+                                self.width - 4, self.height - 4)
+        pygame.draw.ellipse(surf, self.color, body_rect)
+        pygame.draw.ellipse(surf, (180, 120, 30), body_rect, 2)
+
+        # 眼睛
+        eye_y = cy - 6
+        pygame.draw.circle(surf, (255, 255, 255), (cx - 7, eye_y), 5)
+        pygame.draw.circle(surf, (255, 255, 255), (cx + 7, eye_y), 5)
+        pygame.draw.circle(surf, (30, 30, 30), (cx - 6, eye_y + 1), 2)
+        pygame.draw.circle(surf, (30, 30, 30), (cx + 8, eye_y + 1), 2)
 
         # 腮红
-        pygame.draw.circle(screen, (255, 150, 150), (screen_x + 5, eye_y + 5), 3)
-        pygame.draw.circle(screen, (255, 150, 150), (screen_x + 27, eye_y + 5), 3)
+        pygame.draw.circle(surf, (255, 150, 150), (cx - 11, eye_y + 5), 3)
+        pygame.draw.circle(surf, (255, 150, 150), (cx + 11, eye_y + 5), 3)
 
-        # 嘴巴（小弧线）
-        mouth_x = screen_x + 16
-        mouth_y = screen_y + 22
-        pygame.draw.arc(
-            screen, (100, 60, 20),
-            (mouth_x - 4, mouth_y - 2, 8, 5),
-            0, math.pi, 2
-        )
+        # 嘴巴
+        mouth_y = cy + 4
+        pygame.draw.arc(surf, (100, 60, 20),
+                        (cx - 4, mouth_y - 2, 8, 5), 0, math.pi, 2)
 
-        # 血条（受伤时显示）
+        # 旋转
+        degrees = math.degrees(self.rotation) % 360
+        rotated = pygame.transform.rotate(surf, -degrees)
+        rx = int(sx - pad - (rotated.get_width() - (self.width + pad * 2)) / 2)
+        ry = int(sy - pad - (rotated.get_height() - (self.height + pad * 2)) / 2)
+        screen.blit(rotated, (rx, ry))
+
+        # 血条（不旋转，直接画在屏幕上）
         if self.health < 100:
             bar_width = 30
             bar_height = 4
@@ -177,7 +232,7 @@ class AIPlayer(Player):
         self.move_direction = 1  # 1=右, -1=左
         self.stuck_timer = 0
         self.last_x = x
-        self.SPEED = int(self.SPEED * speed_variation)
+        self.MAX_SPEED = int(self.MAX_SPEED * speed_variation)
         self.finish_x = (level.finish_x if level else 1000)
 
     def ai_update(self, dt, platforms, obstacles, finish_x):

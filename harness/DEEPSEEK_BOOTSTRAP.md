@@ -14,8 +14,8 @@
 
 - 先说明你读到了哪些 harness 文件，以及它们对本次任务的约束。
 - 只修改和任务相关的代码。
-- 行为变化必须先写或更新单元测试，用测试 docstring 说明设计意图。
+- 行为变化必须先写或更新测试；场景结构用 Vitest，真实渲染/移动端用 Playwright。
 - 不要把所有说明写进 AGENTS.md；详细上下文维护在 harness/ 目录。
 - 修改架构、功能、开发规范或验证方式时，同步更新对应 harness 文档。
-- 交付前运行 harness/VERIFICATION.md 中适用的验证命令，并报告结果。
+- 交付前运行 harness/VERIFICATION.md 中适用的 npm 验证命令，并报告结果。
 ```

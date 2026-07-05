@@ -1,16 +1,22 @@
 # Tests
 
-测试文件按代码模块组织。每个测试方法都应写一句 docstring，说明这个测试保护的设计意图。
+当前测试体系：
 
-运行全部测试：
+- `unit/`：Vitest，验证 Three.js 场景结构、对象命名、类别和动画意图。
+- `e2e/`：Playwright，验证真实浏览器中的 3D canvas。
+
+常用命令：
 
 ```bash
-python3 -m unittest discover -s tests -v
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
 ```
 
 TDD 流程：
 
-1. 先为新功能或 bug 写一个会失败的测试。
-2. 再改实现让测试通过。
-3. 保留测试作为回归保护和功能意图说明。
-
+1. 先写或更新测试。
+2. 再改实现。
+3. 用测试名称和断言表达功能意图。
+4. 3D 画面相关变化必须跑 Playwright。

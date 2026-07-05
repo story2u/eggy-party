@@ -1,53 +1,38 @@
 # Task Playbooks
 
+## 加 3D 场景对象
+
+1. 阅读 `harness/ARCHITECTURE.md` 和 `harness/FEATURE_MAP.md`。
+2. 先在 `tests/unit/` 写对象存在、命名或类别测试。
+3. 在 `src/world/` 新增或扩展工厂函数。
+4. 设置 `object.name` 和 `object.userData.kind`。
+5. 如果影响画面构图，运行 `npm run test:e2e`。
+6. 更新 `harness/FEATURE_MAP.md`。
+
+## 改相机或画布布局
+
+1. 阅读 `src/app/EggyIslandApp.ts`。
+2. 先补 Playwright 断言，覆盖桌面和移动视口。
+3. 修改相机、controls 或 CSS。
+4. 运行 `npm run test:e2e` 并查看截图。
+
+## 加动画
+
+1. 在 Vitest 中写动画意图测试，至少验证对象被更新且不被替换。
+2. 使用 `delta` 和 `elapsed`，不要依赖固定帧率。
+3. 把动画编排放在 `createEggyIslandScene().update` 或专门的 animation 模块。
+
 ## 修 bug
 
-1. 复现或定位触发路径。
-2. 先写一个失败的回归测试，docstring 写清当初应该保护的行为。
-3. 阅读相关模块和 `harness/ARCHITECTURE.md`。
-4. 做最小范围修改让测试通过。
-5. 运行 `harness/VERIFICATION.md` 中的快速验证和必要 smoke test。
-6. 如果 bug 暴露了架构或规范缺口，更新对应 harness 文件。
+1. 先复现。
+2. 选择 Vitest 或 Playwright 写失败测试。
+3. 做最小修复。
+4. 运行 `npm run typecheck && npm test && npm run build`。
+5. 涉及渲染时额外运行 `npm run test:e2e`。
 
-## 加新关卡
+## 引入新库
 
-1. 阅读 `harness/FEATURE_MAP.md`。
-2. 先在 `tests/test_level_data.py` 或新测试文件中写关卡意图测试。
-3. 在 `level.py` 新增 `LEVEL_N`。
-4. 复用已有障碍类，除非任务需要新机制。
-5. 把关卡加入 `ALL_LEVELS`。
-6. 手动运行游戏检查出生点、平台、终点、摄像机和 AI。
-7. 更新 `harness/FEATURE_MAP.md`。
-
-## 加新障碍
-
-1. 阅读 `obstacles.py` 现有类。
-2. 先在 `tests/test_obstacles.py` 写障碍状态、hitbox 或规则测试。
-3. 新类继承 `Obstacle`。
-4. 实现 `update`、`draw`、`get_hitbox`。
-5. 在一个关卡中接入并验证屏幕坐标和摄像机偏移。
-6. 如需伤害或淘汰，在 `game.py` 中统一处理碰撞效果。
-7. 更新 `harness/FEATURE_MAP.md`。
-
-## 改玩家/AI
-
-1. 阅读 `player.py`。
-2. 先在 `tests/test_player.py` 写行为测试。
-3. 输入映射留在 `game.py`，角色运动规则留在 `player.py`。
-4. 保持 `dt` 单位为秒。
-5. 验证人类玩家和 AI 都不会卡死在第一关开头。
-
-## 改 UI/HUD
-
-1. 阅读 `game.py` 的渲染区域。
-2. 使用 `font_utils.get_font`。
-3. 优先避免 emoji，除非已确认目标字体支持。
-4. 运行渲染 smoke test。
-5. 手动查看文字是否溢出。
-
-## 重构
-
-1. 先写下重构目标和不会改变的行为。
-2. 保持一次重构只移动一个清晰边界。
-3. 不在同一次提交里混入大量玩法变化。
-4. 更新 `harness/ARCHITECTURE.md` 和 `harness/DECISIONS.md`。
+1. 说明它解决的问题，以及为什么现有 Three.js/Vite 不够。
+2. 更新 `package.json`。
+3. 更新 `harness/DECISIONS.md`。
+4. 更新验证命令或测试策略。

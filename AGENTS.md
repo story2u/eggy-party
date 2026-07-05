@@ -15,8 +15,8 @@ Before making code changes, read:
 ## Hard Rules
 
 - Do not rewrite unrelated code while completing a focused task.
-- Preserve the simple Python + Pygame architecture unless the task explicitly
-  asks for a larger redesign.
+- Preserve the current Vite + TypeScript + Three.js architecture unless the
+  task explicitly asks for a larger redesign.
 - Use TDD for behavior changes: write or update unit tests before changing
   implementation.
 - Run the verification commands in `harness/VERIFICATION.md` before handing off.

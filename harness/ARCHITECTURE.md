@@ -2,83 +2,54 @@
 
 ## 运行入口
 
-- `run.sh`：进入项目目录并执行 `python3 main.py`。
-- `main.py`：初始化 Pygame，创建 `Game`，进入主循环。
-- `game.py`：项目核心，管理状态机、事件、更新、渲染、关卡切换。
+- `index.html`：浏览器入口，挂载 `#app`。
+- `src/main.ts`：创建 `EggyIslandApp` 并启动渲染。
+- `src/app/EggyIslandApp.ts`：Three.js renderer、camera、OrbitControls、resize、animation loop 生命周期。
+- `run.sh`：执行 `npm run dev -- --host 0.0.0.0`。
 
 ## 核心模块
 
-| 文件 | 职责 |
+| 路径 | 职责 |
 | --- | --- |
-| `main.py` | 程序入口，生命周期外壳 |
-| `game.py` | 主循环、状态机、关卡加载、玩家列表、摄像机、HUD、渲染编排 |
-| `player.py` | `Player` 物理、输入结果应用、角色绘制；`AIPlayer` 简单自动驾驶 |
-| `level.py` | 关卡静态数据：平台、障碍、出生点、终点 |
-| `obstacles.py` | 障碍物基类和具体障碍：旋转锤、尖刺、移动平台、木头人娃娃 |
-| `font_utils.py` | 中文字体加载和回退，避免 Pygame 默认字体导致中文乱码 |
-| `tests/` | 单元测试和回归测试，测试 docstring 记录功能意图 |
-| `assets/` | 预留素材目录 |
+| `src/app/EggyIslandApp.ts` | 应用生命周期、渲染器、相机、控制器、窗口 resize、动画循环 |
+| `src/world/createEggyIslandScene.ts` | 组合完整蛋仔岛场景，暴露 `scene`、`cameraTarget`、`update` |
+| `src/world/createIslandBase.ts` | 浮岛、草地、沙滩、石头等地形对象 |
+| `src/world/createEggyCharacter.ts` | 蛋仔角色模型工厂 |
+| `src/world/createPalmTree.ts` | 棕榈树模型工厂 |
+| `src/styles.css` | 全屏 canvas 和基础页面样式 |
+| `tests/unit/` | Vitest 单元测试，验证场景结构和意图 |
+| `tests/e2e/` | Playwright 桌面/移动 WebGL canvas 验证 |
+| `legacy/pygame-2d/` | 旧 2D Pygame 原型归档 |
 
-## 主循环
+## 数据流
 
-`Game.run()` 每帧执行：
+`EggyIslandApp` 创建 renderer/camera/controls，然后调用 `createEggyIslandScene()` 获取场景对象。每帧：
 
-1. `clock.tick(FPS)` 计算 `dt`。
-2. `_handle_events()` 处理退出、重开、开始等键盘事件。
-3. 按 `state` 调用 update/draw：
-   - `MENU`：静态菜单。
-   - `PLAYING`：更新玩家、AI、障碍、木头人规则、摄像机，再渲染。
-   - `FINISHED`：通关画面。
-4. `pygame.display.flip()` 交换画面。
+1. 用 `performance.now()` 计算 `delta` 和 `elapsed`。
+2. 调用 `island.update(delta, elapsed)` 更新动画。
+3. 调用 `controls.update()`。
+4. `renderer.render(scene, camera)` 绘制 WebGL canvas。
 
-## 状态机
+## 场景对象约定
 
-| 状态 | 进入方式 | 主要行为 |
-| --- | --- | --- |
-| `MENU` | 游戏启动；通关页按 Enter 返回 | 显示标题、操作说明 |
-| `PLAYING` | 菜单按 Enter/Space；按 R 重开 | 更新当前关卡和游戏对象 |
-| `FINISHED` | 关卡索引超过 `ALL_LEVELS` | 显示全部通关页 |
+- 可被测试或后续功能识别的重要对象必须设置 `name`。
+- 重要类别使用 `object.userData.kind` 标记，例如：
+  - `island`
+  - `water`
+  - `eggy-character`
+  - `landmark`
+  - `play-prop`
+  - `foliage`
+- 新增场景工厂优先放在 `src/world/`，避免把所有几何体堆进 app 生命周期类。
 
-## 关卡数据流
+## 渲染和交互约定
 
-`level.py` 定义 `Level` 对象和 `ALL_LEVELS`。
+- Three.js canvas 必须全视口显示，不放在装饰性卡片里。
+- 3D 场景是第一屏主体，不添加营销 hero。
+- 使用 `OrbitControls` 做基础查看交互，后续玩法控制再单独设计。
+- 基础展示使用程序化 Three.js 几何体，不依赖远程图片资源。
 
-`Game.load_level(idx)` 读取关卡数据：
+## 测试边界
 
-- 设置 `self.level`。
-- 创建人类玩家。
-- 根据 `level.ai_spawns` 创建 AI。
-- 重置计时、排名、摄像机、木头人状态。
-
-新增关卡时优先在 `level.py` 中新增 `LEVEL_N`，再追加到 `ALL_LEVELS`。
-
-## 物理和碰撞
-
-- `Player.update(dt, platforms)` 负责重力、位置积分、平台碰撞、掉落死亡。
-- 平台是 `(x, y, w, h)` 元组。
-- 障碍提供 `get_hitbox()`，但当前玩家受伤/障碍碰撞逻辑还不完整，这是后续扩展点。
-- 终点检测在 `Game._check_finish()` 中，用玩家和终点坐标距离判断。
-
-## 渲染分层
-
-`Game._draw_playing()` 渲染顺序：
-
-1. 背景色。
-2. 终点线。
-3. 平台。
-4. 障碍物。
-5. 木头人 GO/STOP 提示。
-6. 玩家。
-7. HUD。
-
-各对象自己的外观尽量留在各自模块内：
-
-- 玩家外观在 `player.py`。
-- 障碍外观在 `obstacles.py`。
-- 全局 UI 和关卡地形在 `game.py`。
-
-## 字体策略
-
-所有需要渲染中文的新增代码应使用 `font_utils.get_font(size)`，不要直接写 `pygame.freetype.SysFont("notosanscjk", size)`。
-
-原因：Pygame 在找不到指定字体时会退回 `FreeSans`，导致中文显示为方块或乱码。
+- 单元测试验证场景结构、对象命名、动画更新不会替换关键对象。
+- Playwright 验证桌面/移动 canvas 全屏、非空、有足够颜色变化，并保存截图。
